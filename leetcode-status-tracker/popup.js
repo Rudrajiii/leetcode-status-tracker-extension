@@ -1,4 +1,4 @@
-const BACKEND_URL = "http://localhost:3001";
+const BACKEND_URL = "https://leetcode-status-tracker-extension.onrender.com/";
 const statusElement = document.getElementById("status");
 const lastOnlineElement = document.getElementById("lastOnline");
 const warningMsg = document.querySelector(".warning");

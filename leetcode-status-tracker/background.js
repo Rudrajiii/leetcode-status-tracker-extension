@@ -1,4 +1,4 @@
-const BACKEND_URL = "http://localhost:3001/updateStatus";
+const BACKEND_URL = "https://leetcode-status-tracker-extension.onrender.com/updateStatus";
 
 // Function to update status on the backend
 async function updateStatus(status) {
