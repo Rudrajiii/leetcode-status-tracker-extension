@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "LeetCode Activity Tracker",
+  "version": "1.0",
+  "description": "Tracks your LeetCode activity and updates your backend in real time.",
+  "permissions": ["tabs"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "https://leetcode.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+    "16": "leetcode.png",
+    "48": "leetcode.png",
+    "128": "leetcode.png"
+  }
+  }
+}
