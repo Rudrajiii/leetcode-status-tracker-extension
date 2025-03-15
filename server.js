@@ -4,9 +4,7 @@ const { Server } = require('socket.io');
 const bodyParser = require('body-parser');
 const path = require('path');
 const cors = require('cors');
-const fs = require('fs');
-
-const STATUS_FILE = path.join(__dirname, 'status.json');
+const mongoose = require('mongoose');
 
 const app = express();
 const server = http.createServer(app);
@@ -19,103 +17,80 @@ const io = new Server(server, {
 
 // Enable CORS for all routes
 app.use(cors());
-
-// Load status from file or use default
-let userStatus = { 
-  status: "offline", 
-  last_online: null 
-};
-
-// Try to load existing status from file
-try {
-  if (fs.existsSync(STATUS_FILE)) {
-    const data = fs.readFileSync(STATUS_FILE, 'utf8');
-    userStatus = JSON.parse(data);
-    console.log('Loaded status from file:', userStatus);
-  }
-} catch (err) {
-  console.error('Error loading status file:', err);
-}
-
-// Function to save status to file
-function saveStatus() {
-  try {
-    fs.writeFileSync(STATUS_FILE, JSON.stringify(userStatus), 'utf8');
-    console.log('Status saved to file');
-  } catch (err) {
-    console.error('Error saving status file:', err);
-  }
-}
-
-function readStatus() {
-  try {
-    if (fs.existsSync(STATUS_FILE)) {
-      const data = fs.readFileSync(STATUS_FILE, 'utf8');
-      userStatus = JSON.parse(data);
-      console.log("----------------------------------------");
-      console.log('Loaded status from file:', userStatus);
-      console.log("----------------------------------------");
-    }
-  } catch (err) {
-    console.error('Error loading status file:', err);
-  }
-}
-
-
-// Middleware
 app.use(bodyParser.json());
 
 // Set EJS as the template engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+// MongoDB connection
+mongoose.connect('mongodb+srv://rudrasaha305:0VyyUS2NAdkECKgI@cluster0.dlv4pwf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => console.log("📌 Connected to MongoDB"))
+  .catch(err => console.error("❌ MongoDB connection error:", err));
+
+// Define a schema and model for user status
+const statusSchema = new mongoose.Schema({
+  status: { type: String, required: true },
+  last_online: { type: Number, default: null }
+});
+
+const Status = mongoose.model('Status', statusSchema);
+
+// Load status from DB or use default
+async function getStatusFromDB() {
+  let userStatus = await Status.findOne();
+  if (!userStatus) {
+    userStatus = new Status({ status: "offline", last_online: null });
+    await userStatus.save();
+  }
+  return userStatus;
+}
+
 // Route to render the EJS file
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+  const userStatus = await getStatusFromDB();
   res.render('index', { 
     status: userStatus.status, 
     last_online: userStatus.last_online 
   });
 });
 
-// API to update status from the Chrome extension
-app.post('/updateStatus', (req, res) => {
+// API to update status
+app.post('/updateStatus', async (req, res) => {
   const { status, last_online } = req.body;
   
   if (!status || (status !== "online" && status !== "offline")) {
     return res.status(400).json({ error: "Invalid status" });
   }
   
+  let userStatus = await getStatusFromDB();
+  
   if (status === "offline") {
     userStatus.last_online = last_online || Date.now();
   }
   
   userStatus.status = status;
+  await userStatus.save();
   
   console.log(`🔄 Status updated: ${status}, Last Online: ${userStatus.last_online}`);
   
-  // Save the updated status to file
-  saveStatus();
-  
-  // Emit real-time update to all connected clients
   io.emit('statusUpdate', userStatus);
-
-  //debugging
-  readStatus();
-  
   res.sendStatus(200);
 });
 
 // API to fetch current status
-app.get('/status', (req, res) => {
-  // Always return the actual timestamp, not a dynamic calculation
+app.get('/status', async (req, res) => {
+  const userStatus = await getStatusFromDB();
   res.json(userStatus);
 });
 
 // WebSocket connection for real-time updates
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
   console.log('⚡ New client connected');
   
-  // Send current status to newly connected clients
+  const userStatus = await getStatusFromDB();
   socket.emit('statusUpdate', userStatus);
   
   socket.on('disconnect', () => {
