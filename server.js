@@ -47,6 +47,21 @@ function saveStatus() {
   }
 }
 
+function readStatus() {
+  try {
+    if (fs.existsSync(STATUS_FILE)) {
+      const data = fs.readFileSync(STATUS_FILE, 'utf8');
+      userStatus = JSON.parse(data);
+      console.log("----------------------------------------");
+      console.log('Loaded status from file:', userStatus);
+      console.log("----------------------------------------");
+    }
+  } catch (err) {
+    console.error('Error loading status file:', err);
+  }
+}
+
+
 // Middleware
 app.use(bodyParser.json());
 
@@ -83,6 +98,9 @@ app.post('/updateStatus', (req, res) => {
   
   // Emit real-time update to all connected clients
   io.emit('statusUpdate', userStatus);
+
+  //debugging
+  readStatus();
   
   res.sendStatus(200);
 });
