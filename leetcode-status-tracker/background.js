@@ -44,8 +44,30 @@ function checkForLeetCodeTabs() {
     });
 }
 
-// Initial check
-checkForLeetCodeTabs();
+// Handle browser startup
+chrome.runtime.onStartup.addListener(() => {
+    // Check if the status was online before browser was closed
+    chrome.storage.local.get("leetCodeStatus", (data) => {
+        if (data.leetCodeStatus === "online") {
+            // If it was online before, now it's offline since browser was closed
+            updateStatus("offline");
+        }
+    });
+});
+
+// Handle browser shutdown
+chrome.runtime.onSuspend.addListener(() => {
+    // When browser is closing, always set to offline
+    updateStatus("offline");
+});
+
+// Initial check - also check stored status
+chrome.storage.local.get("leetCodeStatus", (data) => {
+    // If previously stored as online, verify it's actually open
+    if (data.leetCodeStatus === "online") {
+        checkForLeetCodeTabs();
+    }
+});
 
 // Listen for tab updates (created, updated, removed)
 chrome.tabs.onCreated.addListener(checkForLeetCodeTabs);
