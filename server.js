@@ -16,7 +16,7 @@ const io = new Server(server, {
   }
 });
 
-// Enable CORS for all routes
+// Enable CORS for all routes //
 app.use(cors());
 app.use(bodyParser.json());
 
