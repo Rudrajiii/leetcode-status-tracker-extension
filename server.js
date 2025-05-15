@@ -123,6 +123,25 @@ io.on('connection', async (socket) => {
   });
 });
 
+function formatDuration(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const parts = [];
+
+  if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+  if (minutes > 0) parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+  if (seconds > 0 || parts.length === 0) {
+    parts.push(`${seconds} second${seconds !== 1 ? 's' : ''}`);
+  }
+
+  return parts.join(', ');
+}
+
+
 // Enhanced time stats endpoint that provides daily and weekly data
 app.get('/time-stats', async (req, res) => {
   try {
@@ -197,14 +216,17 @@ app.get('/time-stats', async (req, res) => {
     
     // Calculate weekly average
     const weekAverage = daysWithData > 0 ? weekTotal / daysWithData : 0;
-    
+    let x = formatDuration(dailyStats[today]?.online || 0);
+    let y = formatDuration(dailyStats[today]?.offline || 0);
+    console.log("dailyStats ",dailyStats[today]);
     // Format the response
     res.json({
       today: dailyStats[today] || { online: 0, offline: 0 },
       previousDay: dailyStats[yesterday]?.online || 0,
       weekAverage: weekAverage,
       weekBest: weekBest,
-      dailyStats: dailyStats // Include all daily stats for potential detailed view
+      dailyStats: dailyStats, // Include all daily stats for potential detailed view
+      testing: {online:x, offline:y}
     });
   } catch (error) {
     console.error("Error in time-stats:", error);

@@ -1,7 +1,7 @@
-const BACKEND_URL = "https://leetcode-status-tracker-extension.onrender.com";
+const URL = "https://leetcode-status-tracker-extension.onrender.com";
 
 // Modified endpoint to get time statistics
-const TIME_STATS_ENDPOINT = `${BACKEND_URL}/time-stats`;
+const TIME_STATS_ENDPOINT = `${URL}/time-stats`;
 
 /**
  * Function to fetch time statistics from backend
