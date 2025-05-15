@@ -217,6 +217,8 @@ function startTimer(timestamp) {
 // Load status when popup opens
 fetchStatus();
 
+
+
 // Clean up when the popup closes
 window.addEventListener('unload', () => {
     if (timerInterval) {

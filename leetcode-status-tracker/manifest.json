@@ -19,6 +19,12 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' https://cdnjs.cloudflare.com;"
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["chart.js", "charts.js", "timeStats.js"],
+      "matches": ["https://*/*"]
+    }
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

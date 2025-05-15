@@ -16,7 +16,7 @@ const io = new Server(server, {
   }
 });
 
-// Enable CORS for all routes //
+// Enable CORS for all routes
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -39,13 +39,20 @@ const statusSchema = new mongoose.Schema({
 
 const Status = mongoose.model('Status', statusSchema);
 
+// Enhanced log schema with date information
 const logSchema = new mongoose.Schema({
   status: { type: String, enum: ['online', 'offline'], required: true },
-  timestamp: { type: Number, required: true }
+  timestamp: { type: Number, required: true },
+  date: { type: String, required: true } // YYYY-MM-DD format for easier querying
 });
 
 const StatusLog = mongoose.model('StatusLog', logSchema);
 
+// Helper function to get date in YYYY-MM-DD format
+function getDateString(timestamp = Date.now()) {
+  const date = new Date(timestamp);
+  return date.toISOString().split('T')[0];
+}
 
 // Load status from DB or use default
 async function getStatusFromDB() {
@@ -77,7 +84,12 @@ app.post('/updateStatus', async (req, res) => {
   let userStatus = await getStatusFromDB();
   if (userStatus.status !== status) {
     // Save log entry when the status changes
-    await StatusLog.create({ status, timestamp: Date.now() });
+    const now = Date.now();
+    await StatusLog.create({ 
+      status, 
+      timestamp: now,
+      date: getDateString(now)
+    });
   }
   
   if (status === "offline") {
@@ -111,40 +123,94 @@ io.on('connection', async (socket) => {
   });
 });
 
+// Enhanced time stats endpoint that provides daily and weekly data
 app.get('/time-stats', async (req, res) => {
-  const logs = await StatusLog.find().sort({ timestamp: 1 });
-
-  let onlineTime = 0;
-  let offlineTime = 0;
-  let lastTimestamp = null;
-  let lastStatus = null;
-
-  for (const log of logs) {
-    if (lastTimestamp !== null && lastStatus !== null) {
-      const duration = log.timestamp - lastTimestamp;
-      if (lastStatus === "online") {
-        onlineTime += duration;
-      } else {
-        offlineTime += duration;
+  try {
+    const today = getDateString();
+    const yesterday = getDateString(Date.now() - 86400000); // 24 hours ago
+    
+    // Get all logs from the past 7 days
+    const sevenDaysAgo = getDateString(Date.now() - 7 * 86400000);
+    const weekLogs = await StatusLog.find({
+      date: { $gte: sevenDaysAgo }
+    }).sort({ timestamp: 1 });
+    
+    // Group logs by date
+    const logsByDate = {};
+    
+    for (const log of weekLogs) {
+      if (!logsByDate[log.date]) {
+        logsByDate[log.date] = [];
       }
+      logsByDate[log.date].push(log);
     }
-    lastTimestamp = log.timestamp;
-    lastStatus = log.status;
+    
+    // Calculate online time for each day
+    const dailyStats = {};
+    let weekTotal = 0;
+    let weekBest = 0;
+    let daysWithData = 0;
+    
+    // Process each day's logs
+    Object.keys(logsByDate).forEach(date => {
+      const logs = logsByDate[date];
+      let dayOnline = 0;
+      let dayOffline = 0;
+      let lastTimestamp = null;
+      let lastStatus = null;
+      
+      // Calculate time between status changes
+      for (const log of logs) {
+        if (lastTimestamp !== null && lastStatus !== null) {
+          const duration = log.timestamp - lastTimestamp;
+          if (lastStatus === "online") {
+            dayOnline += duration;
+          } else {
+            dayOffline += duration;
+          }
+        }
+        lastTimestamp = log.timestamp;
+        lastStatus = log.status;
+      }
+      
+      // If the day is today and the last status is still ongoing
+      if (date === today && lastStatus !== null) {
+        const now = Date.now();
+        if (lastStatus === "online") {
+          dayOnline += now - lastTimestamp;
+        } else {
+          dayOffline += now - lastTimestamp;
+        }
+      }
+      
+      // Store daily stats
+      dailyStats[date] = {
+        online: dayOnline,
+        offline: dayOffline
+      };
+      
+      // Update weekly totals
+      weekTotal += dayOnline;
+      weekBest = Math.max(weekBest, dayOnline);
+      daysWithData++;
+    });
+    
+    // Calculate weekly average
+    const weekAverage = daysWithData > 0 ? weekTotal / daysWithData : 0;
+    
+    // Format the response
+    res.json({
+      today: dailyStats[today] || { online: 0, offline: 0 },
+      previousDay: dailyStats[yesterday]?.online || 0,
+      weekAverage: weekAverage,
+      weekBest: weekBest,
+      dailyStats: dailyStats // Include all daily stats for potential detailed view
+    });
+  } catch (error) {
+    console.error("Error in time-stats:", error);
+    res.status(500).json({ error: "Failed to fetch time statistics" });
   }
-
-  // If currently online, count time from last log to now
-  if (lastStatus === "online") {
-    onlineTime += Date.now() - lastTimestamp;
-  } else if (lastStatus === "offline") {
-    offlineTime += Date.now() - lastTimestamp;
-  }
-
-  res.json({
-    online: onlineTime,
-    offline: offlineTime
-  });
 });
-
 
 // Start the server
 const PORT = process.env.PORT || 3001;

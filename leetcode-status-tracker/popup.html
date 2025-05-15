@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
     <title>LeetCode Status</title>
     <link rel="stylesheet" href="popup.css">
 </head>
@@ -54,64 +53,19 @@
                 </div>
             </section>
             <section id="stats-monitering-container">
-                <canvas id="timePieChart" width="300" height="300"></canvas>
+                <div class="chart-container">
+                    <canvas id="timePieChart" width="300" height="300"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="progressChart" width="300" height="300"></canvas>
+                </div>
             </section>
         </div>
     </div>
 
     <script src="popup.js"></script>
-    <script src="chart.umd.js"></script>
-    <!-- <script src="pieChart.js"></script> -->
-    <script>
-        // const API_URL = "http://localhost:3001/time-stats";
-const API_URL = "https://leetcode-status-tracker-extension.onrender.com/time-stats";
-
-const ctx = document.getElementById('timePieChart').getContext('2d');
-let pieChart = new Chart(ctx, {
-    type: 'pie',
-    data: {
-        labels: ['Online Time', 'Offline Time'],
-        datasets: [{
-            label: 'Today\'s Usage',
-            data: [0, 0],
-            backgroundColor: ['#36A2EB', '#FF6384'],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            title: {
-                display: true,
-                text: "LeetCode Usage Today"
-            }
-        }
-    }
-});
-
-async function fetchTimeStats() {
-    try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
-
-        const online = Math.floor(data.online / 60000);  // in minutes
-        const offline = Math.floor(data.offline / 60000); // in minutes
-
-        pieChart.data.datasets[0].data = [online, offline];
-        pieChart.update();
-    } catch (err) {
-        console.error("Failed to fetch time stats:", err);
-    }
-}
-
-// Auto update every 30 seconds
-setInterval(fetchTimeStats, 10000);
-
-// Initial load
-fetchTimeStats();
-
-    </script>
-
-
+    <script src="chart.js"></script>
+    <script src="charts.js"></script>
+    <script src="timeStats.js"></script>
 </body>
 </html>
