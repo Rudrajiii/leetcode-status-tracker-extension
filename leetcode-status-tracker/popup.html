@@ -7,12 +7,50 @@
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-    <h2>LeetCode Activity Tracker</h2>
-    <section class="warning">
-        Make Sure Your service is Up & Running
-    </section>
-    <p>Status: <span id="status">Loading...</span></p>
-    <p>Last Online: <span id="lastOnline">Loading...</span></p>
+    <div class="main-container">
+        <div id="credentialsPage" style="display: none;">
+            <h2>Enter LeetCode Credentials</h2>
+            <form id="credentialsForm">
+                <input type="text" id="username" placeholder="LeetCode Username" required><br>
+                <input type="password" id="password" placeholder="Password" required><br>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    
+        <div id="statusPage" style="display: none;">
+            <!-- <h2>LeetCode Activity Tracker</h2> -->
+            <section class="warning">
+                Make Sure Your service is Up & Running
+            </section>
+            <section class="upper-section">
+                <div class="user-image">
+                    <img id="user-profile-pic" src="" alt="user-profile-name">
+                    <p id="user-bio"class="clr-grey">
+                        
+                    </p>
+                </div>
+                <div class="contents">
+                    <h1 id="user-profile-display-name">
+                    </h1>
+                    <p id="user-profile-name" class="clr-grey"></p>
+                    <h1>Live On (Tracking)</h1>
+                    <p class="clr-grey">leetcode-status-tracker-extension.onrender.com</p>
+                    <h1>Current Status</h1>
+                    <div class="status-container">
+                        <p>Status <span id="status" class="clr-grey">Loading...</span></p>
+                        <p>Last Online <span id="lastOnline" class="clr-grey">Loading...</span></p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider round"></span>
+                      </label>
+                </div>
+            </section>
+        </div>
+    </div>
+
     <script src="popup.js"></script>
+
+
 </body>
 </html>

@@ -3,12 +3,18 @@
   "name": "LeetCode Activity Tracker",
   "version": "1.0",
   "description": "Tracks your LeetCode activity and updates your backend in real time.",
-  "permissions": ["tabs","storage"],
+  "permissions": ["tabs","storage", "idle", "scripting"],
   "background": {
     "service_worker": "background.js"
   },
   "host_permissions": [
     "https://leetcode.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://leetcode.com/*"],
+      "js": ["content.js"]
+    }
   ],
   "action": {
     "default_popup": "popup.html",
