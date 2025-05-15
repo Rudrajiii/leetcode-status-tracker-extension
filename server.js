@@ -39,6 +39,14 @@ const statusSchema = new mongoose.Schema({
 
 const Status = mongoose.model('Status', statusSchema);
 
+const logSchema = new mongoose.Schema({
+  status: { type: String, enum: ['online', 'offline'], required: true },
+  timestamp: { type: Number, required: true }
+});
+
+const StatusLog = mongoose.model('StatusLog', logSchema);
+
+
 // Load status from DB or use default
 async function getStatusFromDB() {
   let userStatus = await Status.findOne();
@@ -67,6 +75,10 @@ app.post('/updateStatus', async (req, res) => {
   }
   
   let userStatus = await getStatusFromDB();
+  if (userStatus.status !== status) {
+    // Save log entry when the status changes
+    await StatusLog.create({ status, timestamp: Date.now() });
+  }
   
   if (status === "offline") {
     userStatus.last_online = last_online || Date.now();
@@ -98,6 +110,41 @@ io.on('connection', async (socket) => {
     console.log('❌ Client disconnected');
   });
 });
+
+app.get('/time-stats', async (req, res) => {
+  const logs = await StatusLog.find().sort({ timestamp: 1 });
+
+  let onlineTime = 0;
+  let offlineTime = 0;
+  let lastTimestamp = null;
+  let lastStatus = null;
+
+  for (const log of logs) {
+    if (lastTimestamp !== null && lastStatus !== null) {
+      const duration = log.timestamp - lastTimestamp;
+      if (lastStatus === "online") {
+        onlineTime += duration;
+      } else {
+        offlineTime += duration;
+      }
+    }
+    lastTimestamp = log.timestamp;
+    lastStatus = log.status;
+  }
+
+  // If currently online, count time from last log to now
+  if (lastStatus === "online") {
+    onlineTime += Date.now() - lastTimestamp;
+  } else if (lastStatus === "offline") {
+    offlineTime += Date.now() - lastTimestamp;
+  }
+
+  res.json({
+    online: onlineTime,
+    offline: offlineTime
+  });
+});
+
 
 // Start the server
 const PORT = process.env.PORT || 3001;

@@ -1,4 +1,5 @@
 const BACKEND_URL = "https://leetcode-status-tracker-extension.onrender.com";
+// const BACKEND_URL = "http://localhost:3001";
 const LEETCODE_API_ENDPOINT = "https://alfa-leetcode-api.onrender.com";
 
 const statusElement = document.getElementById("status");
@@ -15,21 +16,49 @@ const userProfileDisplayName = document.getElementById("user-profile-display-nam
 
 const userBio = document.getElementById("user-bio");
 const toggleCheckButton = document.querySelector('input[type=checkbox]');
+const focusModeStatus = document.querySelector(".focus-mode-status");
 
 
 toggleCheckButton.addEventListener('change',function(){
+    if(this.checked){
+        focusModeStatus.innerText = "Focus Mode is ON";
+        focusModeStatus.style.color = "#4CAF50"; // Green color
+        chrome.storage.local.set({ toggleCheckButton: true });
+    }else{
+        focusModeStatus.innerText = "Enable Focus Mode";
+        focusModeStatus.style.color = "#f44336"; // Red color
+        chrome.storage.local.set({ toggleCheckButton: false });
+    }
     this.checked ? chrome.storage.local.set({ toggleCheckButton: true }) : chrome.storage.local.set({ toggleCheckButton: false });
 });
 
 chrome.storage.local.get("toggleCheckButton", function(data) {
-    data.toggleCheckButton ? toggleCheckButton.checked = true : toggleCheckButton.checked = false;
+    if(data.toggleCheckButton){
+        toggleCheckButton.checked = true;
+        focusModeStatus.innerText = "Focus Mode is ON";
+        focusModeStatus.style.color = "#4CAF50"; // Green color
+    }else{
+        toggleCheckButton.checked = false;
+        focusModeStatus.innerText = "Enable Focus Mode";
+        focusModeStatus.style.color = "#f44336"; // Red color
+    } 
+    // data.toggleCheckButton ? toggleCheckButton.checked = true : toggleCheckButton.checked = false;
 });
+
+
 
 function showUserProfile(avatarUrl, displayName , displayName2 , userBioText) {
     if (userProfilePic) userProfilePic.src = avatarUrl;
     if (userProfileName) userProfileName.innerText = displayName;
-    if (userProfileDisplayName) userProfileDisplayName.innerText = displayName2;
     if (userBio) userBio.innerText = userBioText; // Placeholder for user bio
+    if (userProfileDisplayName) {
+        userProfileDisplayName.innerText = displayName2;
+        const icon = document.createElement('i');
+        icon.style.marginLeft = '6px'; // Add some space between the icon and text
+        icon.className = 'fa-solid fa-user';
+        userProfileDisplayName.appendChild(icon);
+}
+
 }
 
 // Check credentials on load

@@ -1,3 +1,4 @@
+// const BACKEND_URL = "http://localhost:3001/updateStatus";
 const BACKEND_URL = "https://leetcode-status-tracker-extension.onrender.com/updateStatus";
 
 // Track active tab and activity state
