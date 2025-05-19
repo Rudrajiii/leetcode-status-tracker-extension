@@ -3,12 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" /> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>LeetCode Status</title>
     <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="progress_report.css">
 </head>
 <body>
     <div class="main-container">
+        <div class="top-right-buttons">
+            <button id="anlysisBtn" title="Refresh">Progress Report  <i class="fa-solid fa-chart-simple"></i></button>
+            <button id="settingsBtn" title="Settings"><i class="fa-solid fa-gear"></i></button>
+        </div>
+
         <div id="credentialsPage" style="display: none;">
             <h2>Enter LeetCode Credentials</h2>
             <form id="credentialsForm">
@@ -19,7 +25,6 @@
         </div>
     
         <div id="statusPage" style="display: none;">
-            <!-- <h2>LeetCode Activity Tracker</h2> -->
             <section class="warning">
                 Make Sure Your service is Up & Running
             </section>
@@ -29,7 +34,6 @@
                     <p id="user-bio"class="clr-grey">
                         
                     </p>
-                    <p>Graphical Analysis</p>
                 </div>
                 <div class="contents">
                         <h1 id="user-profile-display-name">
@@ -37,7 +41,7 @@
                     
                     <p id="user-profile-name" class="clr-grey"></p>
                     <h1>Live On (Tracking <i class="fa-solid fa-globe"></i> )</h1>
-                    <p class="clr-grey">leetcode-status-tracker-extension.onrender.com</p>
+                    <p class="clr-grey registered-url"><i class="fa-solid fa-circle-check"></i> leetcode-status-tracker-extension.onrender.com</p>
                     <h1>Current Status <i class="fa-solid fa-wifi"></i></h1>
                     <div class="status-container">
                         <p>Status <span id="status" class="clr-grey">Loading...</span></p>
@@ -53,19 +57,39 @@
                 </div>
             </section>
             <section id="stats-monitering-container">
-                <!-- <div class="chart-container"> -->
-                    <canvas id="timePieChart" width="400" height="400"></canvas>
-                
-                <!-- <div class="chart-container">
+                <div class="chart-container">
+                    <canvas id="timePieChart" width="300" height="300"></canvas>
+                </div>
+                <div class="second-chart-container">
+                    
                     <canvas id="progressChart" width="300" height="300"></canvas>
-                </div> -->
+                </div>
             </section>
         </div>
     </div>
-
+    <div class="progress-report" style="display: none;">
+        <h2 class="progress-matrix">Progress Matrix</h2>
+        <section class="upper-report">
+            <!-- Doughnut chart container -->
+            <div class="progress-chart-page">
+                <canvas id="ProgressReportChart" width="300" height="150"></canvas>
+            </div>
+            <!-- Additional stats -->
+            <div class="stats-container">
+                <h1 class="--center">Today</h1>
+                <p id="todayTime" class="--center"></p>
+                <p id="changePercentage" class="--center"></p>
+                <p id="dailyAverage" class="--center"></p>
+                <p id="mostActiveDay" class="--center"></p>
+            </div>
+        </section>
+        
+        <button id="back" type="button">Back <i class="fa-solid fa-arrow-left"></i></button>
+    </div>
+    </div>
     <script src="popup.js"></script>
     <script src="chart.js"></script>
     <script src="charts.js"></script>
-    <script src="timeStats.js"></script>
+    <!-- <script src="timeStats.js"></script> -->
 </body>
 </html>

@@ -1,0 +1,54 @@
+.progress-matrix{
+    text-align: center;
+    font-size: 1.3rem;
+}
+#back{
+    background: whitesmoke;
+    color: black;
+    padding: 0.5rem 1rem;
+    border-radius: 0.4rem;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+    margin-top: 10px;
+    /* color: #f9330b;
+    color: #ff5e00;
+    color: #f59f0b;
+    color: #4CAF50; */
+    /* color: #ee0905;
+    color: #FF5733;
+    color: #ffae00; */
+}
+.upper-report{
+    width: 100%;
+    display: flex;
+    height: 200px;
+    /* background: red; */
+    border-radius: .4rem;
+    gap: 10px;
+    
+}
+.progress-chart-page,.stats-container{
+    width: 50%;
+    height: 100%;
+   background: #2f2e2ee9;
+    border-radius: .4rem;
+    box-sizing: border-box;
+}
+.--center{
+    text-align: center;
+    font-size: 1.2rem;
+}
+.stats-container{
+    gap: 20px;
+}
+.stats-container p .label {
+    color: #9EA0A3; /* Grey */
+}
+
+.stats-container p .value {
+    color: white;
+    margin-left: 5px;
+    font-weight: bold;
+}

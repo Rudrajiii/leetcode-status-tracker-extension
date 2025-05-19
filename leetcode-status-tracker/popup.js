@@ -2,6 +2,8 @@ const BACKEND_URL = "https://leetcode-status-tracker-extension.onrender.com";
 // const BACKEND_URL = "http://localhost:3001";
 const LEETCODE_API_ENDPOINT = "https://alfa-leetcode-api.onrender.com";
 
+const mainConatainer = document.querySelector(".main-container");
+const progressReport = document.querySelector(".progress-report");
 const statusElement = document.getElementById("status");
 const lastOnlineElement = document.getElementById("lastOnline");
 const warningMsg = document.querySelector(".warning");
@@ -18,6 +20,38 @@ const userBio = document.getElementById("user-bio");
 const toggleCheckButton = document.querySelector('input[type=checkbox]');
 const focusModeStatus = document.querySelector(".focus-mode-status");
 
+const analysisBtn = document.getElementById("anlysisBtn");
+const back = document.getElementById("back");
+
+const registeredUrl = document.querySelector(".registered-url");
+
+analysisBtn.addEventListener("click", function() {
+    // Open the analysis page in a new tab
+    mainConatainer.style.display = "none";
+    /*
+    display: flex;
+    width: 650px;
+    height: 100%;
+    flex-direction: column;
+    padding: 10px;
+    */
+   progressReport.style.display = "flex";
+   progressReport.style.width = "650px";
+   progressReport.style.height = "100%";
+   progressReport.style.flexDirection = "column";
+   progressReport.style.padding = "10px";
+   
+});
+
+registeredUrl.addEventListener("click", function() {
+    // Opening the analysis page in a new tab
+    chrome.tabs.create({ url: "https://leetcode-status-tracker-extension.onrender.com"});
+})
+
+back.addEventListener("click", function() {
+    progressReport.style.display = "none";
+    mainConatainer.style.display = "flex";
+})
 
 toggleCheckButton.addEventListener('change',function(){
     if(this.checked){

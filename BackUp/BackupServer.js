@@ -5,8 +5,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const moment = require('moment-timezone'); // For Indian Time handling
-require('dotenv').config();
+require('dotenv').config()
 
 const app = express();
 const server = http.createServer(app);
@@ -17,7 +16,7 @@ const io = new Server(server, {
   }
 });
 
-// Use middleware
+// Enable CORS for all routes
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -44,33 +43,18 @@ const Status = mongoose.model('Status', statusSchema);
 const logSchema = new mongoose.Schema({
   status: { type: String, enum: ['online', 'offline'], required: true },
   timestamp: { type: Number, required: true },
-  date: { type: String, required: true } // YYYY-MM-DD format
+  date: { type: String, required: true } // YYYY-MM-DD format for easier querying
 });
 
 const StatusLog = mongoose.model('StatusLog', logSchema);
 
-// Constants
-const INDIAN_TIMEZONE = 'Asia/Kolkata';
-
-// Helper functions
-function getIndianDateString(timestamp = Date.now()) {
-  return moment(timestamp).tz(INDIAN_TIMEZONE).format("YYYY-MM-DD");
+// Helper function to get date in YYYY-MM-DD format
+function getDateString(timestamp = Date.now()) {
+  const date = new Date(timestamp);
+  return date.toISOString().split('T')[0];
 }
 
-function getIndianDayBounds(timestamp = Date.now()) {
-  const date = moment(timestamp).tz(INDIAN_TIMEZONE);
-  return {
-    start: date.clone().startOf('day').valueOf(), // 00:00:00 IST
-    end: date.clone().endOf('day').valueOf()       // 23:59:59 IST
-  };
-}
-
-function getWeekKey(dateString) {
-  const date = moment(dateString, "YYYY-MM-DD");
-  const sunday = date.clone().startOf('week'); // Week starts on Sunday
-  return sunday.format("YYYY-MM-DD");
-}
-
+// Load status from DB or use default
 async function getStatusFromDB() {
   let userStatus = await Status.findOne();
   if (!userStatus) {
@@ -78,25 +62,6 @@ async function getStatusFromDB() {
     await userStatus.save();
   }
   return userStatus;
-}
-
-// Close any open-ended logs at midnight
-async function finalizeOpenLogs() {
-  const latestLog = await StatusLog.findOne().sort({ timestamp: -1 });
-  if (!latestLog) return;
-
-  const now = Date.now();
-  const { end } = getIndianDayBounds(now);
-
-  if (latestLog.status === "online" && now > end) {
-    await StatusLog.create({
-      status: "offline",
-      timestamp: end,
-      date: getIndianDateString(end)
-    });
-
-    console.log("🔒 Closed open online session at midnight:", new Date(end).toISOString());
-  }
 }
 
 // Route to render the EJS file
@@ -115,34 +80,27 @@ app.post('/updateStatus', async (req, res) => {
   if (!status || (status !== "online" && status !== "offline")) {
     return res.status(400).json({ error: "Invalid status" });
   }
-
+  
   let userStatus = await getStatusFromDB();
-
   if (userStatus.status !== status) {
+    // Save log entry when the status changes
     const now = Date.now();
-    const { start, end } = getIndianDayBounds(now);
-
-    let effectiveTimestamp = now;
-    if (now > end) effectiveTimestamp = end;
-
-    await StatusLog.create({
-      status,
-      timestamp: effectiveTimestamp,
-      date: getIndianDateString(effectiveTimestamp)
+    await StatusLog.create({ 
+      status, 
+      timestamp: now,
+      date: getDateString(now)
     });
-
-    console.log(`📊 Log created: ${status} at ${new Date(effectiveTimestamp).toISOString()}`);
   }
-
+  
   if (status === "offline") {
     userStatus.last_online = last_online || Date.now();
   }
-
+  
   userStatus.status = status;
   await userStatus.save();
-
+  
   console.log(`🔄 Status updated: ${status}, Last Online: ${userStatus.last_online}`);
-
+  
   io.emit('statusUpdate', userStatus);
   res.sendStatus(200);
 });
@@ -153,113 +111,131 @@ app.get('/status', async (req, res) => {
   res.json(userStatus);
 });
 
-// Format duration in human-readable form
+// WebSocket connection for real-time updates
+io.on('connection', async (socket) => {
+  console.log('⚡ New client connected');
+  
+  const userStatus = await getStatusFromDB();
+  socket.emit('statusUpdate', userStatus);
+  
+  socket.on('disconnect', () => {
+    console.log('❌ Client disconnected');
+  });
+});
+
 function formatDuration(ms) {
   const totalSeconds = Math.floor(ms / 1000);
+
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
   const parts = [];
+
   if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
   if (minutes > 0) parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
-  if (seconds > 0 || parts.length === 0) parts.push(`${seconds} second${seconds !== 1 ? 's' : ''}`);
+  if (seconds > 0 || parts.length === 0) {
+    parts.push(`${seconds} second${seconds !== 1 ? 's' : ''}`);
+  }
 
   return parts.join(', ');
 }
 
-// Get time statistics by day and week
+
+// Enhanced time stats endpoint that provides daily and weekly data
 app.get('/time-stats', async (req, res) => {
   try {
-    const today = getIndianDateString();
-    const yesterday = getIndianDateString(Date.now() - 86400000); // 24h ago
-
-    const sevenDaysAgo = getIndianDateString(Date.now() - 7 * 86400000);
+    const today = getDateString();
+    const yesterday = getDateString(Date.now() - 86400000); // 24 hours ago
+    
+    // Get all logs from the past 7 days
+    const sevenDaysAgo = getDateString(Date.now() - 7 * 86400000);
     const weekLogs = await StatusLog.find({
       date: { $gte: sevenDaysAgo }
     }).sort({ timestamp: 1 });
-
+    
+    // Group logs by date
     const logsByDate = {};
+    
     for (const log of weekLogs) {
-      if (!logsByDate[log.date]) logsByDate[log.date] = [];
+      if (!logsByDate[log.date]) {
+        logsByDate[log.date] = [];
+      }
       logsByDate[log.date].push(log);
     }
-
+    
+    // Calculate online time for each day
     const dailyStats = {};
     let weekTotal = 0;
     let weekBest = 0;
     let daysWithData = 0;
-
+    
+    // Process each day's logs
     Object.keys(logsByDate).forEach(date => {
       const logs = logsByDate[date];
       let dayOnline = 0;
       let dayOffline = 0;
       let lastTimestamp = null;
       let lastStatus = null;
-
+      
+      // Calculate time between status changes
       for (const log of logs) {
         if (lastTimestamp !== null && lastStatus !== null) {
           const duration = log.timestamp - lastTimestamp;
-          if (lastStatus === "online") dayOnline += duration;
-          else dayOffline += duration;
+          if (lastStatus === "online") {
+            dayOnline += duration;
+          } else {
+            dayOffline += duration;
+          }
         }
         lastTimestamp = log.timestamp;
         lastStatus = log.status;
       }
-
+      
+      // If the day is today and the last status is still ongoing
       if (date === today && lastStatus !== null) {
         const now = Date.now();
-        if (lastStatus === "online") dayOnline += now - lastTimestamp;
-        else dayOffline += now - lastTimestamp;
+        if (lastStatus === "online") {
+          dayOnline += now - lastTimestamp;
+        } else {
+          dayOffline += now - lastTimestamp;
+        }
       }
-
-      dailyStats[date] = { online: dayOnline, offline: dayOffline };
+      
+      // Store daily stats
+      dailyStats[date] = {
+        online: dayOnline,
+        offline: dayOffline
+      };
+      
+      // Update weekly totals
       weekTotal += dayOnline;
       weekBest = Math.max(weekBest, dayOnline);
       daysWithData++;
     });
-
+    
+    // Calculate weekly average
     const weekAverage = daysWithData > 0 ? weekTotal / daysWithData : 0;
-
-    // Weekly stats grouping by Sunday-starting weeks
-    const weeklyStats = {};
-    Object.keys(dailyStats).forEach(date => {
-      const weekKey = getWeekKey(date);
-      if (!weeklyStats[weekKey]) weeklyStats[weekKey] = { online: 0, offline: 0 };
-      weeklyStats[weekKey].online += dailyStats[date].online;
-      weeklyStats[weekKey].offline += dailyStats[date].offline;
-    });
-
+    let x = formatDuration(dailyStats[today]?.online || 0);
+    let y = formatDuration(dailyStats[today]?.offline || 0);
+    console.log("dailyStats ",dailyStats[today]);
+    // Format the response
     res.json({
       today: dailyStats[today] || { online: 0, offline: 0 },
       previousDay: dailyStats[yesterday]?.online || 0,
-      weekAverage,
-      weekBest,
-      dailyStats,
-      weeklyStats
+      weekAverage: weekAverage,
+      weekBest: weekBest,
+      dailyStats: dailyStats, // Include all daily stats for potential detailed view
+      testing: {online:x, offline:y}
     });
   } catch (error) {
-    console.error("Error fetching time stats:", error);
+    console.error("Error in time-stats:", error);
     res.status(500).json({ error: "Failed to fetch time statistics" });
   }
 });
 
-// WebSocket connection for real-time updates
-io.on('connection', async (socket) => {
-  console.log('⚡ New client connected');
-
-  const userStatus = await getStatusFromDB();
-  socket.emit('statusUpdate', userStatus);
-
-  socket.on('disconnect', () => {
-    console.log('❌ Client disconnected');
-  });
-});
-
-// Start server
+// Start the server
 const PORT = process.env.PORT || 3001;
-finalizeOpenLogs().catch(console.error);
-
 server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
