@@ -221,14 +221,18 @@ app.get('/time-stats', async (req, res) => {
 
     const weekAverage = daysWithData > 0 ? weekTotal / daysWithData : 0;
 
+    let x = formatDuration(dailyStats[today]?.online || 0);
+    let y = formatDuration(dailyStats[today]?.offline || 0);
+    console.log("dailyStats ",dailyStats[today]);
+
     // Weekly stats grouping by Sunday-starting weeks
-    const weeklyStats = {};
-    Object.keys(dailyStats).forEach(date => {
-      const weekKey = getWeekKey(date);
-      if (!weeklyStats[weekKey]) weeklyStats[weekKey] = { online: 0, offline: 0 };
-      weeklyStats[weekKey].online += dailyStats[date].online;
-      weeklyStats[weekKey].offline += dailyStats[date].offline;
-    });
+    // const weeklyStats = {};
+    // Object.keys(dailyStats).forEach(date => {
+    //   const weekKey = getWeekKey(date);
+    //   if (!weeklyStats[weekKey]) weeklyStats[weekKey] = { online: 0, offline: 0 };
+    //   weeklyStats[weekKey].online += dailyStats[date].online;
+    //   weeklyStats[weekKey].offline += dailyStats[date].offline;
+    // });
 
     res.json({
       today: dailyStats[today] || { online: 0, offline: 0 },
@@ -236,7 +240,10 @@ app.get('/time-stats', async (req, res) => {
       weekAverage,
       weekBest,
       dailyStats,
-      weeklyStats
+      test: {
+        x: x,
+        y: y
+      }
     });
   } catch (error) {
     console.error("Error fetching time stats:", error);
