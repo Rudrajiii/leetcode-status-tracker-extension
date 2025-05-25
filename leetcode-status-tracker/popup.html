@@ -10,9 +10,13 @@
 </head>
 <body>
     <div class="main-container">
-        <div class="top-right-buttons">
-            <button id="anlysisBtn" title="Refresh">Progress Report  <i class="fa-solid fa-chart-simple"></i></button>
-            <button id="settingsBtn" title="Settings"><i class="fa-solid fa-gear"></i></button>
+        <section class="warning">
+            <i class="fa-solid fa-circle-exclamation"></i> Make sure your application service is Up & Running
+        </section>
+        <div class="top-right-buttons" style="display: none;">
+            <button class="special-style" title="notification"><i class="fa-solid fa-circle-info"></i></button>
+            <button class="special-style" id="anlysisBtn" title="Refresh">Progress Report  <i class="fa-solid fa-chart-simple"></i></button>
+            <button class="special-style" id="settingsBtn" title="Settings"><i class="fa-solid fa-gear"></i></button>
         </div>
 
         <div id="credentialsPage" style="display: none;">
@@ -25,9 +29,6 @@
         </div>
     
         <div id="statusPage" style="display: none;">
-            <section class="warning">
-                Make Sure Your service is Up & Running
-            </section>
             <section class="upper-section">
                 <div class="user-image">
                     <img id="user-profile-pic" src="" alt="user-profile-name">
@@ -76,8 +77,9 @@
             </div>
             <!-- Additional stats -->
             <div class="stats-container">
-                <h1 class="--center">Today</h1>
+                <h1 class="--center">Today's Stats</h1>
                 <p id="todayTime" class="--center"></p>
+                <p id="previousDayTime" class="--center"></p>
                 <p id="changePercentage" class="--center"></p>
                 <p id="dailyAverage" class="--center"></p>
                 <p id="mostActiveDay" class="--center"></p>

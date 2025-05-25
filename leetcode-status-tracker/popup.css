@@ -78,7 +78,8 @@ p {
   color: #856404;
   background: #FFF3CD;
   padding: .7rem;
-  width: 60%;
+  width: 97%;
+  border: 1px solid #856404;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   font-size: 15px;
   border-radius: 6px;
@@ -293,12 +294,17 @@ input:checked + .slider:before {
 .top-right-buttons button:hover {
     background: #ddd;
 }
-.registered-url{
+.registered-url {
   cursor: pointer;
-  color:#34D399 !important;
+  color: #34D399 !important;
   background: #2f2e2ee9;
   width: 80%;
   padding: .5rem;
   border-radius: .4rem;
   border: 1px solid #34D399;
+}
+.special-style{
+  cursor: pointer;
+  background: #2f2e2ee9 !important;
+  color: #34D399 !important;
 }

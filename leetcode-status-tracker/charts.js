@@ -341,6 +341,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Example usage inside fetchTimeStats():
         updateTextElement('todayTime', 'Today', formatTime(data.today.online));
+        updateTextElement('previousDayTime', 'Previous Day', formatTime(data.previousDay));
         updateTextElement('changePercentage', 'Change', changeLabel, changeColor);
         updateTextElement('dailyAverage', 'Daily Average', formatTime(data.weekAverage));
         updateTextElement('mostActiveDay', 'Most Active Day', formatTime(data.weekBest));

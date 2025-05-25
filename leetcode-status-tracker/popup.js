@@ -1,5 +1,4 @@
 const BACKEND_URL = "https://leetcode-status-tracker-extension.onrender.com";
-// const BACKEND_URL = "http://localhost:3001";
 const LEETCODE_API_ENDPOINT = "https://alfa-leetcode-api.onrender.com";
 
 const mainConatainer = document.querySelector(".main-container");
@@ -24,6 +23,7 @@ const analysisBtn = document.getElementById("anlysisBtn");
 const back = document.getElementById("back");
 
 const registeredUrl = document.querySelector(".registered-url");
+const topRightButtons = document.querySelector(".top-right-buttons");
 
 analysisBtn.addEventListener("click", function() {
     // Open the analysis page in a new tab
@@ -53,30 +53,34 @@ back.addEventListener("click", function() {
     mainConatainer.style.display = "flex";
 })
 
-toggleCheckButton.addEventListener('change',function(){
-    if(this.checked){
+// Toggle Focus Mode
+toggleCheckButton.addEventListener('change', function () {
+    const isChecked = this.checked;
+
+    if (isChecked) {
         focusModeStatus.innerText = "Focus Mode is ON";
-        focusModeStatus.style.color = "#4CAF50"; // Green color
-        chrome.storage.local.set({ toggleCheckButton: true });
-    }else{
+        focusModeStatus.style.color = "#4CAF50";
+    } else {
         focusModeStatus.innerText = "Enable Focus Mode";
-        focusModeStatus.style.color = "#f44336"; // Red color
-        chrome.storage.local.set({ toggleCheckButton: false });
+        focusModeStatus.style.color = "#f44336";
     }
-    this.checked ? chrome.storage.local.set({ toggleCheckButton: true }) : chrome.storage.local.set({ toggleCheckButton: false });
+
+    chrome.storage.local.set({ toggleCheckButton: isChecked });
 });
 
-chrome.storage.local.get("toggleCheckButton", function(data) {
-    if(data.toggleCheckButton){
-        toggleCheckButton.checked = true;
+// Load stored state
+chrome.storage.local.get(["toggleCheckButton"], function (data) {
+    const isEnabled = data.toggleCheckButton === true;
+
+    toggleCheckButton.checked = isEnabled;
+
+    if (isEnabled) {
         focusModeStatus.innerText = "Focus Mode is ON";
-        focusModeStatus.style.color = "#4CAF50"; // Green color
-    }else{
-        toggleCheckButton.checked = false;
+        focusModeStatus.style.color = "#4CAF50";
+    } else {
         focusModeStatus.innerText = "Enable Focus Mode";
-        focusModeStatus.style.color = "#f44336"; // Red color
-    } 
-    // data.toggleCheckButton ? toggleCheckButton.checked = true : toggleCheckButton.checked = false;
+        focusModeStatus.style.color = "#f44336";
+    }
 });
 
 
@@ -186,6 +190,7 @@ async function fetchStatus() {
         if (warningMsg) {
             setTimeout(() => {
                 warningMsg.remove();
+                topRightButtons.style.display = "flex";
             }, 3000);
         }
         
@@ -215,6 +220,7 @@ async function fetchStatus() {
         if (warningMsg) {
             setTimeout(() => {
                 warningMsg.remove();
+                topRightButtons.style.display = "flex";
             }, 3000);
         }
         

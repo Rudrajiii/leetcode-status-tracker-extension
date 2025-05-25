@@ -120,18 +120,19 @@ app.post('/updateStatus', async (req, res) => {
 
   if (userStatus.status !== status) {
     const now = Date.now();
-    const { start, end } = getIndianDayBounds(now);
+    //! test for fixing bug
+    // const { start, end } = getIndianDayBounds(now);
 
-    let effectiveTimestamp = now;
-    if (now > end) effectiveTimestamp = end;
+    // let effectiveTimestamp = now;
+    // if (now > end) effectiveTimestamp = end;
 
     await StatusLog.create({
       status,
-      timestamp: effectiveTimestamp,
-      date: getIndianDateString(effectiveTimestamp)
+      timestamp: now,
+      date: getIndianDateString(now)
     });
 
-    console.log(`📊 Log created: ${status} at ${new Date(effectiveTimestamp).toISOString()}`);
+    console.log(`📊 Log created: ${status} at ${new Date(now).toISOString()}`);
   }
 
   if (status === "offline") {
@@ -225,14 +226,7 @@ app.get('/time-stats', async (req, res) => {
     let y = formatDuration(dailyStats[today]?.offline || 0);
     console.log("dailyStats ",dailyStats[today]);
 
-    // Weekly stats grouping by Sunday-starting weeks
-    // const weeklyStats = {};
-    // Object.keys(dailyStats).forEach(date => {
-    //   const weekKey = getWeekKey(date);
-    //   if (!weeklyStats[weekKey]) weeklyStats[weekKey] = { online: 0, offline: 0 };
-    //   weeklyStats[weekKey].online += dailyStats[date].online;
-    //   weeklyStats[weekKey].offline += dailyStats[date].offline;
-    // });
+    
 
     res.json({
       today: dailyStats[today] || { online: 0, offline: 0 },
