@@ -117,32 +117,30 @@ app.post('/updateStatus', async (req, res) => {
   }
 
   let userStatus = await getStatusFromDB();
+  const previousStatus = userStatus.status;
 
-  if (userStatus.status !== status) {
+  // Create a log entry only when status changes
+  if (previousStatus !== status) {
     const now = Date.now();
-    //! test for fixing bug
-    // const { start, end } = getIndianDayBounds(now);
-
-    // let effectiveTimestamp = now;
-    // if (now > end) effectiveTimestamp = end;
-
     await StatusLog.create({
       status,
       timestamp: now,
       date: getIndianDateString(now)
     });
-
     console.log(`📊 Log created: ${status} at ${new Date(now).toISOString()}`);
   }
 
-  if (status === "offline") {
+  // IMPORTANT FIX: Only update last_online when transitioning FROM online TO offline
+  if (status === "offline" && previousStatus === "online") {
     userStatus.last_online = last_online || Date.now();
+    console.log(`📆 Last online timestamp updated: ${new Date(userStatus.last_online).toISOString()}`);
   }
+  // Do NOT update last_online when already offline or when going from offline to online
 
   userStatus.status = status;
   await userStatus.save();
 
-  console.log(`🔄 Status updated: ${status}, Last Online: ${userStatus.last_online}`);
+  console.log(`🔄 Status updated: ${status}, Last Online: ${userStatus.last_online ? new Date(userStatus.last_online).toISOString() : 'None'}`);
 
   io.emit('statusUpdate', userStatus);
   res.sendStatus(200);

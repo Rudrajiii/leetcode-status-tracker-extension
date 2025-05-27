@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize chart contexts after DOM is loaded
   const pieChartCanvas = document.getElementById("timePieChart");
+  const pieChartHolder = document.querySelector(".chart-container")
   const progressChartCanvas = document.getElementById("progressChart");
   const progressReportCanvas = document.getElementById("ProgressReportChart");
   if (!pieChartCanvas) {
@@ -241,6 +242,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
   });
 
+  
+
   async function fetchTimeStats() {
     try {
       const API_URL =
@@ -255,8 +258,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const onlineMinutes = Math.floor(data.today.online / 60000);
       const offlineMinutes = Math.floor(data.today.offline / 60000);
 
-      pieChart.data.datasets[0].data = [onlineMinutes, offlineMinutes];
-      pieChart.update();
+      if (data.today.online === 0 && data.today.offline === 0) {
+        pieChartHolder.classList.add('skeleton-active');
+      } else {
+        pieChartHolder.classList.remove('skeleton-active');
+
+        pieChart.data.datasets[0].data = [onlineMinutes, offlineMinutes];
+        pieChart.update();
+      }
 
       // ========== BAR CHART ==========
       const dailyStats = data.dailyStats || {};

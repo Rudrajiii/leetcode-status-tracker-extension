@@ -18,13 +18,11 @@ async function updateStatus(status) {
 
     // Get current status first to make intelligent decisions
     let currentStatus = null;
-    let currentLastOnline = null;
     try {
         const statusResponse = await fetch(`${BACKEND_URL.replace('/updateStatus', '/status')}`);
         if (statusResponse.ok) {
             const statusData = await statusResponse.json();
             currentStatus = statusData.status;
-            currentLastOnline = statusData.last_online;
         }
     } catch (error) {
         console.error("Failed to get current status:", error);
@@ -32,13 +30,13 @@ async function updateStatus(status) {
 
     const payload = { status };
     
-    // Only update last_online timestamp when FIRST transitioning from online to offline
+    // Only include last_online when FIRST transitioning from online to offline
     if (status === "offline" && currentStatus === "online") {
         payload.last_online = Date.now();
         console.log("Setting new last_online timestamp");
-    } else if (status === "offline" && currentStatus === "offline") {
-        console.log("Already offline, preserving existing last_online timestamp");
-        // Don't include last_online in payload to preserve the existing timestamp
+    } else {
+        // For any other state transition, do NOT include last_online to prevent overwriting the server timestamp
+        console.log("Not including last_online in this update");
     }
     
 

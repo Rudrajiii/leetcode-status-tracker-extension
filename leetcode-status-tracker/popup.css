@@ -263,6 +263,7 @@ input:checked + .slider:before {
 
 .chart-container,
 .second-chart-container {
+  position: relative;
   width: 50%;
   border-radius: 0.4rem;
   box-sizing: border-box; /* Make sure padding doesn't overflow */
@@ -308,3 +309,58 @@ input:checked + .slider:before {
   background: #2f2e2ee9 !important;
   color: #34D399 !important;
 }
+
+.chart-skeleton {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            inset: 0;
+            text-align: center;
+            z-index: 2;
+            background-color: #2f2e2ee9;
+            border-radius: 12px;
+        }
+
+        .skeleton-active .chart-skeleton {
+            display: flex;
+        }
+
+        .skeleton-active canvas {
+            display: none;
+        }
+
+        .skeleton-pie {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                #404040 0deg 90deg,
+                #353535 90deg 180deg,
+                #2a2a2a 180deg 270deg,
+                #383838 270deg 360deg
+            );
+            margin-bottom: 15px;
+            animation: spin 2s linear infinite;
+            border: 2px solid #444;
+        }
+
+        .chart-skeleton h3 {
+            color: #dcdcdc;
+            font-weight: 500;
+            font-size: 1rem;
+            margin: 0;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
