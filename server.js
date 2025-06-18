@@ -32,6 +32,7 @@ mongoose.connect(process.env.MONGO_URI, {
 }).then(() => console.log("📌 Connected to MongoDB"))
   .catch(err => console.error("❌ MongoDB connection error:", err));
 
+//Here is my all schema's
 // Define a schema and model for user status
 const statusSchema = new mongoose.Schema({
   status: { type: String, required: true },
@@ -48,6 +49,21 @@ const logSchema = new mongoose.Schema({
 });
 
 const StatusLog = mongoose.model('StatusLog', logSchema);
+
+// Schema to store the time stats
+const leetCodeYesterDayTimeStatsSchema = new mongoose.Schema({
+  date:{
+    type: String,
+    required: true,
+    unique: true //each date is unique
+  },
+  online: { type: Number, default: 0 }, // Total online time in milliseconds
+  offline: { type: Number, default: 0 }, // Total offline time in milliseconds
+  humanReadableOnline: { type: String, default: "0 seconds" }, // Human-readable format
+  humanReadableOffline: { type: String, default: "0 seconds" }, // Human-readable format
+});
+
+const LeetCodeYesterDayTimeStats = mongoose.model('LeetCodeYesterDayTimeStats', leetCodeYesterDayTimeStatsSchema);
 
 // Constants
 const INDIAN_TIMEZONE = 'Asia/Kolkata';
@@ -222,10 +238,31 @@ app.get('/time-stats', async (req, res) => {
 
     let x = formatDuration(dailyStats[today]?.online || 0);
     let y = formatDuration(dailyStats[today]?.offline || 0);
-    console.log("dailyStats ",dailyStats[today]);
+    console.log("dailyStats ",dailyStats,Date.now());
 
+    let previousDayTimeData = dailyStats[yesterday] || { online: 0, offline: 0 };
+    let previousDayOnline = previousDayTimeData.online;
+    let previousDayOffline = previousDayTimeData.offline;
+    let humanReadableOnline = formatDuration(previousDayOnline);
+    let humanReadableOffline = formatDuration(previousDayOffline); 
+    
+    try{
+      let saveTimeStatsData = await LeetCodeYesterDayTimeStats.create({
+      date: yesterday || getIndianDateString(Date.now() - 86400000),
+      online: previousDayOnline,
+      offline: previousDayOffline,
+      humanReadableOnline: humanReadableOnline,
+      humanReadableOffline: humanReadableOffline
+    });
+
+    console.log("Saved previous day time stats: ", saveTimeStatsData);
+    }catch(error){
+      console.error("bruh it's a duplicate key error");
+    }
     
 
+    
+    console.log("Previous Day Time Data: ", previousDayTimeData);
     res.json({
       today: dailyStats[today] || { online: 0, offline: 0 },
       previousDay: dailyStats[yesterday]?.online || 0,
@@ -234,7 +271,8 @@ app.get('/time-stats', async (req, res) => {
       dailyStats,
       test: {
         x: x,
-        y: y
+        y: y,
+        today:yesterday
       }
     });
   } catch (error) {

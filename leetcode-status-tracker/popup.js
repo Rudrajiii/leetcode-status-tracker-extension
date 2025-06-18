@@ -25,6 +25,8 @@ const back = document.getElementById("back");
 const registeredUrl = document.querySelector(".registered-url");
 const topRightButtons = document.querySelector(".top-right-buttons");
 
+const pieChartHolder = document.querySelector(".chart-container");
+
 analysisBtn.addEventListener("click", function() {
     // Open the analysis page in a new tab
     mainConatainer.style.display = "none";

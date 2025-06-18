@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (percent <= 40) return '#FF5733'; // Dark Orange for small losses
     return '#ee0905'; // Deep Red for large losses
   }
-
   function getGainColor(percentage) {
     const percent = parseFloat(percentage);
     if (percent <= 10) return '#f9330b'; // Orange for small gains
@@ -26,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize chart contexts after DOM is loaded
   const pieChartCanvas = document.getElementById("timePieChart");
-  const pieChartHolder = document.querySelector(".chart-container")
+  const pieChartHolder = document.querySelector(".chart-container");
   const progressChartCanvas = document.getElementById("progressChart");
   const progressReportCanvas = document.getElementById("ProgressReportChart");
   if (!pieChartCanvas) {
@@ -172,6 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
         y: {
           ticks: {
             color: "#9EA0A3",
+            
           },
           beginAtZero: true,
           title: {
@@ -253,7 +253,10 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(`HTTP error! status: ${response.status}`);
 
       const data = await response.json();
+      
       console.log("Fetched time stats:", data);
+
+      
       // ========== PIE CHART ==========
       const onlineMinutes = Math.floor(data.today.online / 60000);
       const offlineMinutes = Math.floor(data.today.offline / 60000);
@@ -310,11 +313,30 @@ document.addEventListener("DOMContentLoaded", () => {
         const previousDayMinutes = Math.floor(previousDayMillis / 60000);
 
         let diff = todayOnlineMillis - previousDayMillis;
-        let percentageChange = Math.abs((diff / previousDayMillis) * 100).toFixed(0);
-        let changeLabel = diff >= 0 ? `⬆️ ${percentageChange}% Increase` : `⬇️ ${percentageChange}% Decrease`;
+        let percentageChange = 0;
+        let changeLabel = "";
+        let changeColor = "";
+
+        if (previousDayMillis === 0) {
+          if (todayOnlineMillis > 0) {
+            // Previous day was 0, current day has time → Infinite increase
+            percentageChange = 100; // cap at 100%
+            changeLabel = "⬆️ 100% Increase";
+            changeColor = getGainColor(100);
+          } else {
+            // Both days are 0
+            percentageChange = 0;
+            changeLabel = "No activity both days";
+            changeColor = "#9EA0A3"; // neutral color
+          }
+        } else {
+          percentageChange = Math.abs((diff / previousDayMillis) * 100).toFixed(0);
+          changeLabel = diff >= 0 ? `⬆️ ${percentageChange}% Increase` : `⬇️ ${percentageChange}% Decrease`;
+          changeColor = diff < 0 ? getLossColor(percentageChange) : getGainColor(percentageChange);
+        }
 
         // Determine color based on percentage change
-        let changeColor;
+        // let changeColor;
         if (diff < 0) {
             // Losses (negative percentages)
             changeColor = getLossColor(percentageChange);

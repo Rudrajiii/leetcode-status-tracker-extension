@@ -310,7 +310,7 @@ input:checked + .slider:before {
   color: #34D399 !important;
 }
 
-.chart-skeleton {
+.chart-skeleton,.chart-skeleton-loading-state {
             display: none;
             flex-direction: column;
             align-items: center;
