@@ -248,7 +248,7 @@ app.get('/time-stats', async (req, res) => {
     
     try{
       let saveTimeStatsData = await LeetCodeYesterDayTimeStats.create({
-      date: yesterday || getIndianDateString(Date.now() - 86400000),
+      date: yesterday,
       online: previousDayOnline,
       offline: previousDayOffline,
       humanReadableOnline: humanReadableOnline,
@@ -260,7 +260,6 @@ app.get('/time-stats', async (req, res) => {
       console.error("bruh it's a duplicate key error");
     }
     
-
     
     console.log("Previous Day Time Data: ", previousDayTimeData);
     res.json({
@@ -278,6 +277,17 @@ app.get('/time-stats', async (req, res) => {
   } catch (error) {
     console.error("Error fetching time stats:", error);
     res.status(500).json({ error: "Failed to fetch time statistics" });
+  }
+});
+
+
+app.get("/get-my-online-stats", async (req , res ) => {
+  try{
+    const allTimeStats = await LeetCodeYesterDayTimeStats.find({}).sort({date:1});
+    res.json(allTimeStats);
+  }catch(error){
+    console.error("Error fetching online stats: ", error);
+    res.status(500).json({ error: "Failed to fetch online stats" });
   }
 });
 

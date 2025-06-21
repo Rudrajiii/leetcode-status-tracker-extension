@@ -114,7 +114,6 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   });
 
-
   // Initialize the bar chart
   const progressChart = new Chart(progressChartCtx, {
     type: "bar",
