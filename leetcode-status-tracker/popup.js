@@ -1,4 +1,6 @@
 const BACKEND_URL = "https://leetcode-status-tracker-extension.onrender.com";
+// const BACKEND_URL = "http://localhost:3001";
+
 const LEETCODE_API_ENDPOINT = "https://alfa-leetcode-api.onrender.com";
 
 const mainConatainer = document.querySelector(".main-container");

@@ -1,4 +1,6 @@
 // const BACKEND_URL = "http://localhost:3001/updateStatus";
+// const backend = "http://localhost:3001";
+const backend = "https://leetcode-status-tracker-extension.onrender.com";
 const BACKEND_URL = "https://leetcode-status-tracker-extension.onrender.com/updateStatus";
 
 // Track active tab and activity state
@@ -6,7 +8,28 @@ let activeLeetCodeTabId = null;
 let lastActivityTime = Date.now();
 const INACTIVITY_THRESHOLD = 5 * 60 * 1000; // 5 minutes in milliseconds
 let lastStatus = null; // Track the previous status to avoid unnecessary updates
+const HEARTBEAT_INTERVAL = 10000; // 10 seconds
 
+// function sendHeartbeat() {
+//     fetch(`${backend}/heartbeat`) 
+//         .then(response => {
+//             if (response.ok) {
+//                 console.log("✅ Heartbeat sent successfully");
+//             } else {
+//                 console.error("❌ Heartbeat failed with status:", response.status);
+//             }
+//         })
+//         .catch(error => {
+//             console.error("🚫 Failed to send heartbeat:", error.message);
+//         });
+// }
+
+// Start sending heartbeats
+// console.log("---🔌 Heartbeat system started---");
+// setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
+
+// Initial send
+// sendHeartbeat();
 
 // Function to update status on the backend
 async function updateStatus(status) {
@@ -252,7 +275,7 @@ chrome.runtime.onMessage.addListener(function(message) {
 
 // Handle browser startup
 chrome.runtime.onStartup.addListener(function() {
-    console.log("Browser started");
+    console.log("Browser started....");
     
     // Check current status first
     fetch(`${BACKEND_URL.replace('/updateStatus', '/status')}`)

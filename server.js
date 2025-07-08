@@ -115,6 +115,23 @@ async function finalizeOpenLogs() {
   }
 }
 
+let lastHeartbeat = null;
+
+setInterval(() => {
+    const secondsSinceLast = Math.floor((Date.now() - lastHeartbeat) / 1000);
+    if (secondsSinceLast > 60) {
+        console.warn(`🛑 No heartbeat for ${secondsSinceLast}s. Client likely offline.`);
+    }
+}, 30000); // Check every 30s
+
+// Heartbeat endpoint (for verification)
+app.get('/heartbeat', (req, res) => {
+    lastHeartbeat = Date.now();
+    console.log("💓 Heartbeat received from client");
+    res.json({ status: "alive" });
+});
+
+
 // Route to render the EJS file
 app.get('/', async (req, res) => {
   const userStatus = await getStatusFromDB();

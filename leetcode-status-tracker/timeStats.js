@@ -108,16 +108,26 @@ function getYesterday() {
     return formatted;
 }
 
-function getPreviousDayOfYesterday() {
-    const previousDay = new Date();
-    previousDay.setDate(previousDay.getDate() - 2);
 
-    const yyyy = previousDay.getFullYear();
-    const mm = String(previousDay.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
-    const dd = String(previousDay.getDate()).padStart(2, '0');
 
-    const formatted = `${yyyy}-${mm}-${dd}`;
-    return formatted;
+function clearLocalStorageExcept(keyToKeep) {
+    const keysToRemove = [];
+    
+    // Collect all keys that need to be removed
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key !== keyToKeep) {
+            keysToRemove.push(key);
+        }
+    }
+    
+    // Remove the collected keys
+    keysToRemove.forEach(key => {
+        console.log(`Removing key from localStorage: ${key}`);
+        localStorage.removeItem(key);
+    });
+    
+    console.log(`Cleared ${keysToRemove.length} keys from localStorage, kept: ${keyToKeep}`);
 }
 
 function msToDecimalMinutes(ms) {
@@ -148,7 +158,10 @@ document.getElementById("anlysisBtn").addEventListener("click", () => {
         const URL = "https://leetcode-status-tracker-extension.onrender.com/get-my-online-stats";
         let yesterday = getYesterday(); 
         let localStorageUniqueKey = `Date-${yesterday}`;
-        let keyToRemove = `Date-${getPreviousDayOfYesterday()}`;
+        // let keyToRemove = `Date-${getPreviousDayOfYesterday()}`;
+
+        //* clearing all keys except *localStorageUniqueKey*
+        clearLocalStorageExcept(localStorageUniqueKey);
 
         if (localStorage.getItem(localStorageUniqueKey)) {
             const storedData = JSON.parse(localStorage.getItem(localStorageUniqueKey));
@@ -156,13 +169,6 @@ document.getElementById("anlysisBtn").addEventListener("click", () => {
             return;
         }
 
-        // If the key for the previous day exists, remove it
-        if (localStorage.getItem(keyToRemove)) {
-            console.log(`Removing data for ${getPreviousDayOfYesterday()} from localStorage with key: ${keyToRemove}`);
-            localStorage.removeItem(keyToRemove);
-        }else{
-            console.log(`No data for ${getPreviousDayOfYesterday()} in localStorage, nothing to remove.`);
-        }
 
         /*
         now here i will check if this uniquelocalstoragekey is already present or not
